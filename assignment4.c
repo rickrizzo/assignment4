@@ -3,7 +3,7 @@
 #include <mpi.h>
 #include "timestub.h"
 // #include <hwi/include/bqc/A2_inlines.h>
-#define FILESIZE 1000000
+#define FILESIZE 1000
 
 int main(int argc, char **argv) {
 

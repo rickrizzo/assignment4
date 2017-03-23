@@ -1,9 +1,9 @@
-.PHONY: compile run delete clean
+.PHONY: compile run delete clean read
 
-all: compile run delete clean
+all: compile run
 
 test: compile run
-	
+
 compile:
 	mpicc assignment4.c timestub.c -o assignment4.out
 
@@ -15,3 +15,6 @@ delete:
 
 run:
 	mpirun -n 1 ./assignment4.out
+
+read:
+	hexdump -v -e '7/4 "%10d "' -e '"\n"' test.txt

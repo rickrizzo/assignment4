@@ -17,6 +17,7 @@ int main(int argc, char **argv) {
   int block_size = 0;
   int file_num = 0;
   int ranks_per_file = 0;
+  int file_rank_num = 0;
 
   long long start_cycle_time=0;
   long long end_cycle_time=0;
@@ -52,7 +53,6 @@ int main(int argc, char **argv) {
 
   long ret;
   ret = strtol(argv[2], NULL, 10);
-
   files = ret;
 
   if (mpi_size < files){
@@ -69,9 +69,6 @@ int main(int argc, char **argv) {
     }
       return EXIT_FAILURE;
   }
-  ranks_per_file = mpi_size / files;
-
-  file_num = (mpi_rank / ranks_per_file);
 
   ret = strtol(argv[3], NULL, 10);
   block_size = ret;
@@ -83,12 +80,20 @@ int main(int argc, char **argv) {
     printf( "Write %d files with block size %d, using %d ranks\n", files, block_size, mpi_size);
   }
 
+  // File position and number calculation
+  ranks_per_file = mpi_size / files;
+  file_num = (mpi_rank / ranks_per_file);
+  file_rank_num = (ranks_per_file * file_num) - mpi_rank;
+
   // Buffer Allocation
   int i;
-  int *buffer = (int *) malloc((FILESIZE / mpi_size) * sizeof(int));
-  for(i = 0; i < FILESIZE / mpi_size; i++) {
-    buffer[i] = mpi_rank;
+  int *buffer = (int *) malloc((FILESIZE / ranks_per_file) * sizeof(int));
+  for(i = 0; i < FILESIZE / ranks_per_file; i++) {
+    buffer[i] = file_rank_num;
   }
+
+  // Set Offset
+  offset = file_rank_num * (FILESIZE / ranks_per_file * sizeof(int));
 
   // Write the filename
   char filename[100];
@@ -99,16 +104,13 @@ int main(int argc, char **argv) {
   MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_CREATE|MPI_MODE_WRONLY, MPI_INFO_NULL, &file);
   printf( "%d, opened file %d, %s\n", mpi_rank, file_num, filename );
 
-  // Set Offset
-  offset = mpi_rank * (FILESIZE / mpi_size * sizeof(int));
-
   start_cycle_time = GetTimeBase();
   // Write File
   MPI_File_write_at_all(file, offset, buffer, FILESIZE / mpi_size, MPI_INT, &status);
   printf( "%d, wrote file %d, %s\n", mpi_rank, file_num, filename );
 
   // Read File
-  // MPI_File_write_at_all(file, offset, buffer, FILESIZE / mpi_size, MPI_INT, &status);
+  MPI_File_write_at_all(file, offset, buffer, FILESIZE / mpi_size, MPI_INT, &status);
   //
   end_cycle_time = GetTimeBase();
   total_cycle_time = end_cycle_time - start_cycle_time;

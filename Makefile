@@ -27,4 +27,4 @@ runN:
 	mpirun -n $(np) ./assignment4.out w $(nf) $(nb)
 
 read:
-	hexdump -v -e '7/4 "%10d "' -e '"\n"' test.txt
+	hexdump -v -e '7/4 "%10d "' -e '"\n"' output$(nf).bin

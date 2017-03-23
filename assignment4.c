@@ -22,7 +22,7 @@ int main(int argc, char **argv) {
   long long start_cycle_time=0;
   long long end_cycle_time=0;
   long long total_cycle_time=0, total_cycle_time_comb=0;
-  int write_size;
+  int write_size = 0;
   // Initialize MPI
   MPI_Init(&argc, &argv);
   MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
@@ -83,17 +83,18 @@ int main(int argc, char **argv) {
   // File position and number calculation
   ranks_per_file = mpi_size / files;
   file_num = (mpi_rank / ranks_per_file);
-  file_rank_num = (ranks_per_file * file_num) - mpi_rank;
+  file_rank_num = mpi_rank - (ranks_per_file * file_num);
 
   // Buffer Allocation
+  write_size = FILESIZE / ranks_per_file;
   int i;
-  int *buffer = (int *) malloc((FILESIZE / ranks_per_file) * sizeof(int));
-  for(i = 0; i < FILESIZE / ranks_per_file; i++) {
+  int *buffer = (int *) malloc(write_size * sizeof(int));
+  for(i = 0; i < write_size; i++) {
     buffer[i] = file_rank_num;
   }
 
   // Set Offset
-  offset = file_rank_num * (FILESIZE / ranks_per_file * sizeof(int));
+  offset = file_rank_num * (write_size * sizeof(int));
 
   // Write the filename
   char filename[100];
@@ -109,11 +110,11 @@ int main(int argc, char **argv) {
 
   // Access File
   MPI_File_open(file_comm, filename, MPI_MODE_CREATE|MPI_MODE_WRONLY, MPI_INFO_NULL, &file);
-  printf( "%d, opened file %d, %s\n", mpi_rank, file_num, filename );
+  printf( "%d, opened file %d, offset %lld, %s\n", mpi_rank, file_num, offset, filename );
 
   start_cycle_time = GetTimeBase();
   // Write File
-  MPI_File_write_at_all(file, offset, buffer, FILESIZE / file_rank_num, MPI_INT, &status);
+  MPI_File_write_at_all(file, offset, buffer, write_size, MPI_INT, &status);
   printf( "%d, wrote file %d, %s\n", mpi_rank, file_num, filename );
 
   // Read File

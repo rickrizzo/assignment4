@@ -16,7 +16,7 @@ clean:
 	rm -f assignment4.out
 
 delete:
-	rm -f text.txt
+	rm -f *.bin
 
 run:
 	mpirun -n 1 ./assignment4.out w 1 1

@@ -27,5 +27,14 @@ run2: compile delete
 runN: compile delete
 	mpirun -n $(np) ./assignment4.out w $(nf) $(nb)
 
+read: compile delete run
+	mpirun -n 1 ./assignment4.out r 1 1
+
+read2: compile delete run2
+	mpirun -n 2 ./assignment4.out r 1 1
+
+readN: compile delete runN
+	mpirun -n $(np) ./assignment4.out r $(nf) $(nb)
+
 read:
 	hexdump -v -e '7/4 "%10d "' -e '"\n"' output$(fn).bin

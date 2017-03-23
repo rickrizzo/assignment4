@@ -15,6 +15,8 @@ int main(int argc, char **argv) {
   char read_or_write = 'r';
   int files = 0;
   int block_size = 0;
+  int file_num = 0;
+  int ranks_per_file = 0;
 
   long long start_cycle_time=0;
   long long end_cycle_time=0;
@@ -53,6 +55,24 @@ int main(int argc, char **argv) {
 
   files = ret;
 
+  if (mpi_size < files){
+    if (mpi_rank == 0)
+    {
+      printf( "Error: There should be an greater than or equal ranks as files\n" );
+    }
+      return EXIT_FAILURE;
+  }
+  if (mpi_size % files != 0){
+    if (mpi_rank == 0)
+    {
+      printf( "Error: There should be an equal number of ranks per file\n" );
+    }
+      return EXIT_FAILURE;
+  }
+  ranks_per_file = mpi_size / files;
+
+  file_num = (mpi_rank / ranks_per_file);
+
   ret = strtol(argv[3], NULL, 10);
   block_size = ret;
 
@@ -67,11 +87,16 @@ int main(int argc, char **argv) {
   int i;
   int *buffer = (int *) malloc((FILESIZE / mpi_size) * sizeof(int));
   for(i = 0; i < FILESIZE / mpi_size; i++) {
-    buffer[i] = i;
+    buffer[i] = mpi_rank;
   }
 
+  // Write the filename
+  char filename[100];
+  sprintf(filename,"output%d.bin", file_num);
+  printf( "%d, file %d, %s\n", mpi_rank, file_num, filename );
+
   // Access File
-  MPI_File_open(MPI_COMM_WORLD, "test.txt", MPI_MODE_CREATE|MPI_MODE_WRONLY, MPI_INFO_NULL, &file);
+  MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_CREATE|MPI_MODE_WRONLY, MPI_INFO_NULL, &file);
 
   // Set Offset
   offset = mpi_rank * (FILESIZE / mpi_size * sizeof(int));

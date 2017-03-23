@@ -22,7 +22,7 @@ int main(int argc, char **argv) {
   long long start_cycle_time=0;
   long long end_cycle_time=0;
   long long total_cycle_time=0, total_cycle_time_comb=0;
-
+  int write_size;
   // Initialize MPI
   MPI_Init(&argc, &argv);
   MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
@@ -113,11 +113,11 @@ int main(int argc, char **argv) {
 
   start_cycle_time = GetTimeBase();
   // Write File
-  MPI_File_write_at_all(file, offset, buffer, FILESIZE / mpi_size, MPI_INT, &status);
+  MPI_File_write_at_all(file, offset, buffer, FILESIZE / file_rank_num, MPI_INT, &status);
   printf( "%d, wrote file %d, %s\n", mpi_rank, file_num, filename );
 
   // Read File
-  MPI_File_write_at_all(file, offset, buffer, FILESIZE / mpi_size, MPI_INT, &status);
+  // MPI_File_write_at_all(file, offset, buffer, FILESIZE / mpi_size, MPI_INT, &status);
   //
   end_cycle_time = GetTimeBase();
   total_cycle_time = end_cycle_time - start_cycle_time;

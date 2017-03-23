@@ -18,7 +18,7 @@ int main(int argc, char **argv) {
   int file_num = 0;
   int ranks_per_file = 0;
   int file_rank_num = 0;
-
+  MPI_Comm file_comm;
   long long start_cycle_time=0;
   long long end_cycle_time=0;
   long long total_cycle_time=0, total_cycle_time_comb=0;
@@ -100,8 +100,15 @@ int main(int argc, char **argv) {
   sprintf(filename,"output%d.bin", file_num);
   printf( "%d, file %d, %s\n", mpi_rank, file_num, filename );
 
+  // Split comms based on file
+  MPI_Comm_split(
+    MPI_COMM_WORLD,
+    file_num,
+    file_rank_num,
+    &file_comm);
+
   // Access File
-  MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_CREATE|MPI_MODE_WRONLY, MPI_INFO_NULL, &file);
+  MPI_File_open(file_comm, filename, MPI_MODE_CREATE|MPI_MODE_WRONLY, MPI_INFO_NULL, &file);
   printf( "%d, opened file %d, %s\n", mpi_rank, file_num, filename );
 
   start_cycle_time = GetTimeBase();

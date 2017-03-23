@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <mpi.h>
 
-#define FILESIZE 100
+#define FILESIZE 1000000
 
 int main(int argc, char **argv) {
 
@@ -20,23 +20,28 @@ int main(int argc, char **argv) {
 
   // Buffer Allocation
   int i;
-  int *buffer = (int *) malloc(FILESIZE / mpi_size * sizeof(int));
+  int *buffer = (int *) malloc((FILESIZE / mpi_size) * sizeof(int));
   for(i = 0; i < FILESIZE / mpi_size; i++) {
     buffer[i] = i;
   }
 
   // Access File
+  // |MPI_MODE_DELETE_ON_CLOSE
   MPI_File_open(MPI_COMM_WORLD, "test.txt", MPI_MODE_CREATE|MPI_MODE_WRONLY, MPI_INFO_NULL, &file);
 
   // Set Offset
-  // offset = mpi_rank * FILESIZE * sizeof(int);
+  offset = mpi_rank * (FILESIZE / mpi_size * sizeof(int));
 
   // Write File
-  MPI_File_write(file, buffer, FILESIZE / mpi_size, MPI_INT, &status);
+  MPI_File_write_at_all(file, offset, buffer, FILESIZE / mpi_size, MPI_INT, &status);
+
+  // Read File
+  MPI_File_write_at_all(file, offset, buffer, FILESIZE / mpi_size, MPI_INT, &status);
 
   // Close File
-  free(buffer);
+  MPI_Barrier(MPI_COMM_WORLD);
   MPI_File_close(&file);
+  free(buffer);
 
   // Clean Up
   MPI_Finalize();

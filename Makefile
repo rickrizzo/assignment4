@@ -14,7 +14,10 @@ delete:
 	rm -f text.txt
 
 run:
-	mpirun -n 1 ./assignment4.out
+	mpirun -n 1 ./assignment4.out w 1 1
+
+run2:
+	mpirun -n 2 ./assignment4.out w 1 1
 
 read:
 	hexdump -v -e '7/4 "%10d "' -e '"\n"' test.txt

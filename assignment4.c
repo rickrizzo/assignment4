@@ -4,7 +4,6 @@
 #include "timestub.h"
 // #include <hwi/include/bqc/A2_inlines.h>
 #define FILESIZE 1000
-
 int main(int argc, char **argv) {
 
   // MPI Variables
@@ -13,6 +12,9 @@ int main(int argc, char **argv) {
   MPI_File file;
   MPI_Datatype filetype;
   MPI_Offset offset;
+  char read_or_write = 'r';
+  int files = 0;
+  int block_size = 0;
 
   long long start_cycle_time=0;
   long long end_cycle_time=0;
@@ -22,6 +24,44 @@ int main(int argc, char **argv) {
   MPI_Init(&argc, &argv);
   MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
   MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+
+  if (mpi_size != 1 && mpi_size%2 != 0){
+    if (mpi_rank == 0)
+    {
+      printf("Error! bad number of tasks %d\n", mpi_size);
+    }
+    return EXIT_FAILURE;
+  }
+
+  if (argc != 4){
+    if (mpi_rank == 0)
+    {
+      printf( "Error: Program expects 1 arguments\n" );
+      printf( "Should be of the form:\n" );
+      printf( "`./assignment4.out <op> <files> <block size>`\n" );
+      printf( "Where <op> is 'r' or 'w' \n" );
+      printf( "Where <files> is 1-128 \n" );
+      printf( "Where <block size> is 1-16 \n" );
+    }
+    return EXIT_FAILURE;
+  }
+
+  read_or_write = argv[1][0];
+
+  long ret;
+  ret = strtol(argv[2], NULL, 10);
+
+  files = ret;
+
+  ret = strtol(argv[3], NULL, 10);
+  block_size = ret;
+
+  if (mpi_rank==0 && read_or_write =='r'){
+    printf( "Read %d files with block size %d, using %d ranks\n", files, block_size, mpi_size);
+  }
+  if (mpi_rank==0 && read_or_write =='w'){
+    printf( "Write %d files with block size %d, using %d ranks\n", files, block_size, mpi_size);
+  }
 
   // Buffer Allocation
   int i;

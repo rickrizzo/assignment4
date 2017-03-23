@@ -1,4 +1,4 @@
 # Assignment 4
 
 ## Run Assignment
-make && mpirun ./assignment4.out
+make && mpirun -np 1 ./assignment4.out

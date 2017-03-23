@@ -97,6 +97,7 @@ int main(int argc, char **argv) {
 
   // Access File
   MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_CREATE|MPI_MODE_WRONLY, MPI_INFO_NULL, &file);
+  printf( "%d, opened file %d, %s\n", mpi_rank, file_num, filename );
 
   // Set Offset
   offset = mpi_rank * (FILESIZE / mpi_size * sizeof(int));
@@ -104,6 +105,7 @@ int main(int argc, char **argv) {
   start_cycle_time = GetTimeBase();
   // Write File
   MPI_File_write_at_all(file, offset, buffer, FILESIZE / mpi_size, MPI_INT, &status);
+  printf( "%d, wrote file %d, %s\n", mpi_rank, file_num, filename );
 
   // Read File
   // MPI_File_write_at_all(file, offset, buffer, FILESIZE / mpi_size, MPI_INT, &status);

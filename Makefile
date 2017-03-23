@@ -7,9 +7,9 @@ fn ?= 0
 
 all: compile run
 
-test: compile run
+test: compile run read
 
-compile: assignment4.c timestub.c
+compile: clean assignment4.c timestub.c
 	mpicc assignment4.c timestub.c -o assignment4.out
 
 clean:
@@ -18,13 +18,13 @@ clean:
 delete:
 	rm -f *.bin
 
-run: compile
+run: compile delete
 	mpirun -n 1 ./assignment4.out w 1 1
 
-run2: compile
+run2: compile delete
 	mpirun -n 2 ./assignment4.out w 1 1
 
-runN: compile
+runN: compile delete
 	mpirun -n $(np) ./assignment4.out w $(nf) $(nb)
 
 read:

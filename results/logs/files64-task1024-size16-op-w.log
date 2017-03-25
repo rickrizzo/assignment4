@@ -1,0 +1,5 @@
+Write 64 files with block size 16, using 1024 ranks
+File size 4096M, total size 262144M 
+File output/output-blocks16-proc1024-0-of-64.bin 
+The total cycle time is 42596630 
+The total time is 0, 0 

@@ -1,0 +1,5 @@
+Read 16 files with block size 1, using 512 ranks
+File size 512M, total size 8192M 
+File output/output-blocks1-proc512-0-of-16.bin 
+The total cycle time is 15691883 
+The total time is 0, 0 

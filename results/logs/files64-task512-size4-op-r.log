@@ -1,0 +1,5 @@
+Read 64 files with block size 4, using 512 ranks
+File size 512M, total size 32768M 
+File output/output-blocks4-proc512-0-of-64.bin 
+The total cycle time is 140899666 
+The total time is 0, 0 

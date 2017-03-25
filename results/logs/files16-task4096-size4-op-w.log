@@ -1,0 +1,5 @@
+Write 16 files with block size 4, using 4096 ranks
+File size 16384M, total size 262144M 
+File output/output-blocks4-proc4096-0-of-16.bin 
+The total cycle time is 34951194 
+The total time is 33, 0 

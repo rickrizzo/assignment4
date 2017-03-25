@@ -1,0 +1,5 @@
+Write 1 files with block size 4, using 1024 ranks
+File size 65536M, total size 65536M 
+File output/output-blocks4-proc1024-0-of-1.bin 
+The total cycle time is 68678374 
+The total time is 0, 0 

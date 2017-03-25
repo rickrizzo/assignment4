@@ -1,0 +1,5 @@
+Write 1 files with block size 16, using 512 ranks
+File size 131072M, total size 131072M 
+File output/output-blocks16-proc512-0-of-1.bin 
+The total cycle time is 49026820 
+The total time is 0, 0 

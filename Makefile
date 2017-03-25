@@ -1,5 +1,4 @@
-.PHONY: compile run delete clean read runN
-
+.PHONY:  all test compile clean delete run run2 runN read read2 readN read batch blue
 np ?= 1
 nf ?= 1
 nb ?= 1
@@ -16,7 +15,7 @@ clean:
 	rm -f assignment4.out
 
 delete:
-	rm -f *.bin
+	rm -f output/*.bin
 
 run: compile delete
 	mpirun -n 1 ./assignment4.out w 1 1
@@ -37,4 +36,11 @@ readN: compile delete runN
 	mpirun -n $(np) ./assignment4.out r $(nf) $(nb)
 
 read:
-	hexdump -v -e '7/4 "%10d "' -e '"\n"' output$(fn).bin
+	hexdump -v -e '7/4 "%10d "' -e '"\n"' output/output$(fn).bin
+
+batch: blue
+	./generate.sh $USER
+	sbatch --partition medium --nodes 256 --time 60 ./running.sh
+
+blue: assignment4.c
+	mpixlc -O5 assignment4.c -o assignment4

@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <mpi.h>
-#include "timestub.h"
-// #include <hwi/include/bqc/A2_inlines.h>
+// #include "timestub.h"
+#include <hwi/include/bqc/A2_inlines.h>
 #define BLOCKS_PER 16
 int main(int argc, char **argv) {
 
@@ -16,14 +16,16 @@ int main(int argc, char **argv) {
   char read_or_write = 'r';
   int files = 0, block_size = 0, file_num = 0;
   int ranks_per_file = 0, file_rank_num = 0, write_size = 0, write_elems = 0, file_size = 0;
-  long long start_cycle_time=0;
-  long long end_cycle_time=0;
+  long long start_cycle_time=0, end_cycle_time=0;
   long long total_cycle_time=0, total_cycle_time_comb=0;
+  long long start_time=0, end_time=0;
+  long long total_time=0, total_time_comb=0;
 
   // Initialize MPI
   MPI_Init(&argc, &argv);
   MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
   MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+  start_time = MPI_Wtime();
 
   // Check the command line parameters
   if (mpi_size != 1 && mpi_size%2 != 0){
@@ -96,14 +98,6 @@ int main(int argc, char **argv) {
       return EXIT_FAILURE;
   }
 
-  // Start the operations
-  if (mpi_rank==0 && read_or_write =='r'){
-    printf( "Read %d files with block size %d, using %d ranks\n", files, block_size, mpi_size);
-  }
-  if (mpi_rank==0 && read_or_write =='w'){
-    printf( "Write %d files with block size %d, using %d ranks\n", files, block_size, mpi_size);
-  }
-
   // File position and number calculation
   ranks_per_file = mpi_size / files;
   file_num = (mpi_rank / ranks_per_file);
@@ -114,6 +108,17 @@ int main(int argc, char **argv) {
   write_size = BLOCKS_PER * block_size;
   file_size = write_size * ranks_per_file;
   write_elems = write_size / sizeof(int);
+
+  // Start the operations
+  if (mpi_rank==0 && read_or_write =='r'){
+    printf( "Read %d files with block size %d, using %d ranks\n", files, block_size, mpi_size);
+  }
+  if (mpi_rank==0 && read_or_write =='w'){
+    printf( "Write %d files with block size %d, using %d ranks\n", files, block_size, mpi_size);
+  }
+  if (mpi_rank==0){
+    printf( "File size %dM, total size %dM \n", file_size, file_size * files);
+  }
 
   if (write_size % sizeof(int) != 0){
     if (mpi_rank == 0)
@@ -130,7 +135,11 @@ int main(int argc, char **argv) {
 
   // Write the filename
   char filename[100];
-  sprintf(filename,"output%d.bin", file_num);
+
+  sprintf(filename,"output/output-blocks%d-proc%d-%d-of-%d.bin", block_size, mpi_size, file_num, files);
+  if (mpi_rank==0){
+    printf( "File %s \n", filename);
+  }
 
   // Split comms based on file
   MPI_Comm_split(
@@ -145,13 +154,15 @@ int main(int argc, char **argv) {
 
     start_cycle_time = GetTimeBase();
 
+    int first = (file_num * ranks_per_file * write_elems) + (file_rank_num * write_elems);
     for(i = 0; i < write_elems; i++) {
-      buffer[i] = file_rank_num * write_elems + i;
+      buffer[i] = first + i;
     }
 
     // Write File
     MPI_File_write_at_all(file, offset, buffer, write_elems, MPI_INT, &status);
     end_cycle_time = GetTimeBase();
+
 
   }
   else{
@@ -165,14 +176,12 @@ int main(int argc, char **argv) {
 
     end_cycle_time = GetTimeBase();
 
-    for(i = 0; i < write_elems; i++) {
-      printf( "%d ", buffer[i] );
-    }
-      printf( "\n");
 
   }
 
   total_cycle_time = end_cycle_time - start_cycle_time;
+  end_time = MPI_Wtime();
+  total_time = end_time - start_time;
 
   MPI_Allreduce(
       &total_cycle_time,
@@ -182,12 +191,26 @@ int main(int argc, char **argv) {
       MPI_MAX,
       MPI_COMM_WORLD);
 
+  MPI_Allreduce(
+      &total_time,
+      &total_time_comb,
+      1,
+      MPI_LONG_LONG_INT,
+      MPI_MAX,
+      MPI_COMM_WORLD);
+
   if (mpi_rank == 0)
   {
-    printf( "The total time is %lld \n", total_cycle_time_comb );
-    printf( "The total cycles are TODO\n" );
+    printf( "The total cycle time is %lld \n", total_cycle_time_comb );
+    printf( "The total time is %lld, %lld \n", total_time_comb, total_time );
   }
 
+  // if (read_or_write =='r'){
+  //   for(i = 0; i < write_elems; i++) {
+  //     printf( "%d ", buffer[i] );
+  //   }
+  //   printf( "\n");
+  // }
   // Close File
   MPI_Barrier(MPI_COMM_WORLD);
   MPI_File_close(&file);
